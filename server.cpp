@@ -9,64 +9,55 @@ static SOCKET Server;
 static struct fakeHead sendHead, recvHead;
 static sockaddr_in client_addr;
 static sockaddr_in server_addr;
-
+static SYSTEMTIME sysTime = { 0 };
 static int addrlen;
 static u_short NowSeq = 0;   //消息序列号
 static u_short NowAck = 0;
-static bool ifAck = 0;  //上一条消息是否被接收
+bool ifAck = 0;  //上一条消息是否被接收
  
 static std::string currentPath = "./test/";
 
-int test() {
-	char t1[10] = { 0 };
-	char t2[10] = { 0 };
-	char t3[10] = { 0 };
-	strcpy(t1, "test1");
-	strcpy(t2, "test2");
-	strcpy(t3, "test3");
-
-
-	sendto(Server, t1, sizeof(t1), 0, (struct sockaddr*)&client_addr, addrlen);
-	sendto(Server, t2, sizeof(t1), 0, (struct sockaddr*)&client_addr, addrlen);
-	sendto(Server, t3, sizeof(t1), 0, (struct sockaddr*)&client_addr, addrlen);
-
-	return 0;
-
-}
-
-DWORD WINAPI timeout_resend(LPVOID lpParam) {  //超时重传线程
-	msg *message = (msg*)lpParam;
-	int wait = 0;
-	if (!message->if_SYN()) { 
-		while (!ifAck) {
-			while (wait < wait_time && !ifAck) {
-				Sleep(1);
-				wait += 1;
-			}
-			if (!ifAck) { //由于超时进入该条件判断
-				printf("[Error] Timeout!   Resend!\n");
-				Server_log << "[Error] Timeout!   Resend!" << std::endl;
-
-				sendto(Server, (char*)message, sizeof(msg), 0, (struct sockaddr*)&client_addr, addrlen);
-			}
-		}
-	}
-	else {
-		while (!ifAck) {
-			while (wait < 5000 && !ifAck) {
-				Sleep(1);
-				wait += 1;
-			}
-			if (!ifAck) { //由于超时进入该条件判断
-				printf("[Error] Timeout!   Re-Connect!\n");
-				Server_log << "[Error] Timeout!   Re-Connect!" << std::endl;
-
-				sendto(Server, (char*)message, sizeof(msg), 0, (struct sockaddr*)&client_addr, addrlen);
-			}
-		}
-	}
-	return 0;
-}
+//DWORD WINAPI timeout_resend(LPVOID lpParam) {  //超时重传线程
+//	msg *message = (msg*)lpParam;
+//	if (!message->if_SYN()) { 
+//		while (!ifAck) {
+//			int wait = 0;
+//			while (wait < wait_time && !ifAck) {
+//				Sleep(1);
+//				wait += 1;
+//			}
+//			if (!ifAck) { //由于超时进入该条件判断
+//				printf("[Error] Timeout!   Resend!\n");
+//				GetSystemTime(&sysTime);
+//				Server_log << "[Error] Timeout!   Resend!" << "  "<<wait<<" " << sysTime.wHour + 8 << ":" << sysTime.wMinute << ":" << sysTime.wSecond << ":" << sysTime.wMilliseconds << std::endl;
+//
+//				sendto(Server, (char*)message, sizeof(msg), 0, (struct sockaddr*)&client_addr, addrlen);
+//				
+//			}
+//			if (ifAck) {
+//				return 0;
+//			}
+//		}
+//	}
+//	else {
+//		while (!ifAck) {
+//			int wait = 0;
+//			while (wait < 5000 && !ifAck) {
+//				Sleep(1);
+//				wait += 1;
+//			}
+//			if (!ifAck) { //由于超时进入该条件判断
+//				
+//				printf("[Error] Timeout!   Re-Connect!\n");
+//				GetSystemTime(&sysTime);
+//				Server_log << "[Error] Timeout!   Re-Connect!" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
+//
+//				sendto(Server, (char*)message, sizeof(msg), 0, (struct sockaddr*)&client_addr, addrlen);
+//			}
+//		}
+//	}
+//	return 0;
+//}
 
 
 _Server::_Server() {
@@ -86,10 +77,10 @@ int _Server::start_server() {
 		printf("[Error] Socket Error: %s (errno: %d)\n", strerror(errno), errno);
 		return 1;
 	}
+	GetSystemTime(&sysTime);
+	Server_log << "[Log] Server Socket Start Up!" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 
-	Server_log << "[Log] Server Socket Start Up!" << std::endl;
-
-
+	// 初始化地址和伪首部
 	server_addr.sin_family = AF_INET;       //IPV4
 	server_addr.sin_port = htons(serverPort);     //PORT:8888,htons将主机小端字节转换为网络的大端字节
 	inet_pton(AF_INET, serverIP.c_str(), &server_addr.sin_addr.S_un.S_addr);
@@ -112,10 +103,9 @@ int _Server::start_server() {
 	}
 
 	printf("[Log] Connecting to client..........\n");
-	Server_log << "[Log] Connecting to client.........." << std::endl;
+	Server_log << "[Log] Connecting to client.........." << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 
-	//test();
-	cnt_setup();
+	cnt_setup();  //建立握手
 
 	sendFiles();
 
@@ -135,50 +125,98 @@ int _Server::cnt_setup() {
 	first_shake.set_SYN();   //第一次握手,仅发出一条SYN消息
 	first_shake.set_check(&sendHead);
 
-
 	printf("[SYN] Seq=%d  len=%d\n", first_shake.seq, first_shake.len);
-	Server_log << "[SYN] Seq= " << first_shake.seq << "len = " << first_shake.len << std::endl;
+	GetSystemTime(&sysTime);
+	Server_log << "[SYN] Seq= " << first_shake.seq << "\tlen = " << first_shake.len << "\t  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 	sendMsg(first_shake);
 
 	printf("[Log] Connection Set Up！\n");
-	Server_log << "[Log] Connection Set Up！" << std::endl;
+	GetSystemTime(&sysTime);
+	Server_log << "[Log] Connection Set Up！" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 	return 0;
 }
 
-int _Server::sendMsg(msg message) {
+int _Server::sendMsg(msg message) {  //发送单条数据
 	sendto(Server, (char*)&message, sizeof(msg), 0, (struct sockaddr*)&client_addr, addrlen);
 	//printf("check : %d\n", message.check);
-	printf("[Log] SEND seq = %d,len = %d\n", message.seq, message.len);
-	Server_log << "[Log] SEND seq = " << message.seq << ", len = " << message.len << std::endl;
-	NowSeq += (message.len);
-	int wait = 0;
+	NowSeq += (message.len);  //更新Seq
+	printf("[Log] SEND seq = %d,len = %d, NowSeq = %d\n", message.seq, message.len, NowSeq);
+	GetSystemTime(&sysTime);
+	Server_log << "[Log] SEND \tseq =" << message.seq << "\t, len =" << message.len << "\t , NowSeq =" << NowSeq << "\t  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
+	
 	ifAck = 0;
 
-	HANDLE handle = CreateThread(NULL, 0, timeout_resend, &message, 0, NULL);  //创建检测超时线程,用于超时重传
-	CloseHandle(handle);
+	std::thread timeout_resend([&]() {  //超时重传
+		if (message.if_SYN()) {  //如果是握手超时,则每3s重新连接
+			while (!ifAck) {
+				int wait = 0;
+				while (wait < wait_time && !ifAck) {
+					Sleep(1);
+					wait += 1;
+				}
+				if (!ifAck) { //由于超时进入该条件判断
+					printf("[Error] Timeout!   Resend!\n");
+					GetSystemTime(&sysTime);
+					Server_log << "[Error] Timeout!   Resend!" << "  " << wait << " " << sysTime.wHour + 8 << ":" << sysTime.wMinute << ":" << sysTime.wSecond << ":" << sysTime.wMilliseconds << std::endl;
+
+					sendto(Server, (char*)&message, sizeof(msg), 0, (struct sockaddr*)&client_addr, addrlen);
+
+				}
+			}
+		}
+		else {
+			while (!ifAck) {
+				int wait = 0;
+				while (wait < 3000 && !ifAck) {
+					Sleep(1);
+					wait += 1;
+				}
+				if (!ifAck) { //由于超时进入该条件判断
+					printf("[Error] Timeout!   Re-Connect!\n");
+					GetSystemTime(&sysTime);
+					Server_log << "[Error] Timeout!   Re-Connect!" << "  " << wait << " " << sysTime.wHour + 8 << ":" << sysTime.wMinute << ":" << sysTime.wSecond << ":" << sysTime.wMilliseconds << std::endl;
+
+					sendto(Server, (char*)&message, sizeof(msg), 0, (struct sockaddr*)&client_addr, addrlen);
+
+				}
+			}
+		}
+		});
+	//HANDLE handle = CreateThread(NULL, 0, timeout_resend, &message, 0, NULL);  //创建检测超时线程,用于超时重传
+	//CloseHandle(handle);
 
 	while (true) {
 		msg recv_msg;
 
 		if (recvfrom(Server, (char*)&recv_msg, sizeof(msg), 0, (struct sockaddr*)&client_addr, &addrlen) == SOCKET_ERROR) {
 			printf("[Error] Recieving Error , try to resend!\n");
-			Server_log << "[Error] Recieving Error , try to resend!" << std::endl;
+			Server_log << "[Error] Recieving Error , try to resend!" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 		}
-		else {
-			if (recv_msg.checkValid(&recvHead) && recv_msg.seq == NowAck) {
-				printf("[Log] RECIEVE ack = %d , len = %d\n", recv_msg.ack, recv_msg.len);
-				Server_log << "[Log] RECIEVE ack = " << recv_msg.ack << ", len = " << recv_msg.len << std::endl;
+		else { //成功接收到回复
+			printf("[Log] RECIEVE ack = %d , len = %d\n", recv_msg.ack, recv_msg.len);
+			GetSystemTime(&sysTime);
+			Server_log << "[Log] RECIEVE\t ack = " << recv_msg.ack << "\t, len = " << recv_msg.len << "\t  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
+			if (recv_msg.checkValid(&recvHead) && recv_msg.ack == NowSeq) {  //校验和正确,且Seq与ack对应
 				ifAck = 1;
-				NowAck = recv_msg.seq + recv_msg.len;
-				printf("[Log] Seq %d send successfully!\n ", message.seq);
-				Server_log << "[Log] Seq " << message.seq << " send successfully!" << std::endl;
+				timeout_resend.join();
+				NowAck = recv_msg.seq + recv_msg.len; 
+				printf("[Log] Seq %d send successfully!\n", message.seq);
+				GetSystemTime(&sysTime);
+				Server_log << "[Log] Seq" << message.seq << " send successfully!" << " \t "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 				break;
 
 			}
-			else { //校验和出错
-				std::cout << recv_msg.check;
-				printf("[Error] Valid Error , try to resend111!\n");
-				Server_log << "[Error] Valid Error , try to resend!" << std::endl;
+			else { 
+				int errorType = 0;
+				if (recv_msg.checkValid(&recvHead)) {
+					errorType = 1; // ack != NowSeq
+				}
+				else {
+					errorType = 2; // 校验和出错
+				}
+				printf("[Error] Valid Error %d , try to resend!\n",errorType);
+				GetSystemTime(&sysTime);
+				Server_log << "[Error] Valid Error "<<errorType<<" , try to resend!" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 			}
 		}
 
@@ -189,13 +227,14 @@ int _Server::sendMsg(msg message) {
 
 int _Server::sendFiles() {
 
-	for (const auto& entry : std::filesystem::directory_iterator(currentPath)) {
-		if (entry.is_regular_file()) {
+	for (const auto& entry : std::filesystem::directory_iterator(currentPath)) {  //获取所有文件entry
+		
 			std::string filename = entry.path().filename().string();
-			std::cout << "[Log] Send File: " << filename << std::endl;
-			Server_log << "[Log] Send File: " << filename << std::endl;
+			std::cout << "[Log] Send File: " << filename << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
+			GetSystemTime(&sysTime);
+			Server_log << "[Log] Send File: " << filename << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 			sendFile(entry);
-		}
+		
 	}
 
 	return 0;
@@ -222,14 +261,15 @@ int _Server::sendFile(std::filesystem::directory_entry entry) {
 	fileDescriptor.set_data((char*)&descriptor);
 	fileDescriptor.set_check(&sendHead);
 	printf("send head\n");
-	Server_log << "[Log] Send file head" << std::endl;
+	GetSystemTime(&sysTime);
+	Server_log << "[Log] Send file head" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 	sendMsg(fileDescriptor);
 
 	std::string path = currentPath + filename;
 
 	std::ifstream input(path, std::ios::binary);
 
-	int segments = ceil((float)filelen / MSS);
+	int segments = ceil((float)filelen / MSS);  //分为多个节发送
 
 	for (int i = 0; i < segments; i++) {
 		char buffer[MSS];
@@ -248,10 +288,12 @@ int _Server::sendFile(std::filesystem::directory_entry entry) {
 
 		sendMsg(file_msg);
 		printf("[Log] Segment %d of %d Sent Successfully\n",i,segments);
-		Server_log << "[Log] Segment "<<i<<" of "<<segments<<" Sent Successfully" << std::endl;
+		GetSystemTime(&sysTime);
+		Server_log << "[Log] Segment\t "<<i<<" of "<<segments<<"\t Sent Successfully" << "\t  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 	}
 
-	printf("File %s Sent Successfully!\n", filename);
+	printf("File %s Sent Successfully!\n", filename.c_str());
+	Server_log << "[Log] File " << filename << "Sent Successfully!" << std::endl;
 	return 0;
 }
 
@@ -262,13 +304,14 @@ int _Server::cnt_dic() {
 	wave.set_desPort(clientPort);
 	wave.set_len(0);
 	wave.set_seq(NowSeq);
-	wave.set_FIN();
+	wave.set_FIN();  //设置Fin位
 	wave.set_check(&sendHead);
 
 	sendMsg(wave);
 
 	printf("[Log] Connection destroyed!\n");
-	Server_log << "[Log] Connection destroyed!" << std::endl;
+	GetSystemTime(&sysTime);
+	Server_log << "[Log] Connection destroyed!" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 
 	return 0;
 }

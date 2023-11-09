@@ -1,12 +1,117 @@
-[Log] Server Socket Start Up!
-[Log] Connecting to client..........
-[SYN] Seq= 0len = 0
-[Log] : Seq 0 send successfully!
-[Log] Connection Set Up£¡
-[Log] Send File: test.txt
-[Log] Send file head
-[Log] : Seq 0 send successfully!
-[Log] : Seq 32 send successfully!
-[Log] Segment %d of %d Sent Successfully
-[Log] : Seq 709 send successfully!
-[Log] Connection destroyed!
+[Log] Server Socket Start Up!  22:50:55:150
+[Log] Connecting to client..........  22:50:55:150
+[SYN] Seq= 0len = 0  22:50:55:151
+[Log] SEND 	seq =0	, len =0	 , NowSeq =0	  22:50:55:151
+[Log] RECIEVE	 ack = 0	, len = 0	  22:50:55:165
+[Log] Seq	 0 send successfully! 	 22:50:55:165
+[Log] Connection Set Up£¡  22:50:55:166
+[Log] Send File: 1.jpg  22:50:55:167
+[Log] Send file head  22:50:55:167
+[Log] SEND 	seq =0	, len =32	 , NowSeq =32	  22:50:55:167
+[Log] RECIEVE	 ack = 32	, len = 0	  22:50:55:181
+[Log] Seq	 0 send successfully! 	 22:50:55:181
+[Log] SEND 	seq =32	, len =4084	 , NowSeq =4116	  22:50:55:182
+[Log] RECIEVE	 ack = 4116	, len = 0	  22:50:55:194
+[Log] Seq	 32 send successfully! 	 22:50:55:194
+[Log] Segment	 0 of 455	 Sent Successfully	  22:50:55:195
+[Log] SEND 	seq =4116	, len =4084	 , NowSeq =8200	  22:50:55:195
+[Log] RECIEVE	 ack = 8200	, len = 0	  22:50:55:207
+[Log] Seq	 4116 send successfully! 	 22:50:55:207
+[Log] Segment	 1 of 455	 Sent Successfully	  22:50:55:207
+[Log] SEND 	seq =8200	, len =4084	 , NowSeq =12284	  22:50:55:207
+[Log] RECIEVE	 ack = 12284	, len = 0	  22:50:55:218
+[Log] Seq	 8200 send successfully! 	 22:50:55:218
+[Log] Segment	 2 of 455	 Sent Successfully	  22:50:55:218
+[Log] SEND 	seq =12284	, len =4084	 , NowSeq =16368	  22:50:55:219
+[Log] RECIEVE	 ack = 16368	, len = 0	  22:50:55:233
+[Log] Seq	 12284 send successfully! 	 22:50:55:233
+[Log] Segment	 3 of 455	 Sent Successfully	  22:50:55:233
+[Log] SEND 	seq =16368	, len =4084	 , NowSeq =20452	  22:50:55:235
+[Log] RECIEVE	 ack = 20452	, len = 0	  22:50:55:250
+[Log] Seq	 16368 send successfully! 	 22:50:55:250
+[Log] Segment	 4 of 455	 Sent Successfully	  22:50:55:252
+[Log] SEND 	seq =20452	, len =4084	 , NowSeq =24536	  22:50:55:253
+[Log] RECIEVE	 ack = 24536	, len = 0	  22:50:55:268
+[Log] Seq	 20452 send successfully! 	 22:50:55:269
+[Log] Segment	 5 of 455	 Sent Successfully	  22:50:55:269
+[Log] SEND 	seq =24536	, len =4084	 , NowSeq =28620	  22:50:55:270
+[Log] RECIEVE	 ack = 28620	, len = 0	  22:50:55:281
+[Log] Seq	 24536 send successfully! 	 22:50:55:281
+[Log] Segment	 6 of 455	 Sent Successfully	  22:50:55:282
+[Log] SEND 	seq =28620	, len =4084	 , NowSeq =32704	  22:50:55:284
+[Log] RECIEVE	 ack = 32704	, len = 0	  22:50:55:299
+[Log] Seq	 28620 send successfully! 	 22:50:55:300
+[Log] Segment	 7 of 455	 Sent Successfully	  22:50:55:300
+[Log] SEND 	seq =32704	, len =4084	 , NowSeq =36788	  22:50:55:303
+[Log] RECIEVE	 ack = 36788	, len = 0	  22:50:55:312
+[Log] Seq	 32704 send successfully! 	 22:50:55:313
+[Log] Segment	 8 of 455	 Sent Successfully	  22:50:55:314
+[Log] SEND 	seq =36788	, len =4084	 , NowSeq =40872	  22:50:55:315
+[Log] RECIEVE	 ack = 40872	, len = 0	  22:50:55:329
+[Log] Seq	 36788 send successfully! 	 22:50:55:329
+[Log] Segment	 9 of 455	 Sent Successfully	  22:50:55:330
+[Log] SEND 	seq =40872	, len =4084	 , NowSeq =44956	  22:50:55:331
+[Log] RECIEVE	 ack = 44956	, len = 0	  22:50:55:342
+[Log] Seq	 40872 send successfully! 	 22:50:55:343
+[Log] Segment	 10 of 455	 Sent Successfully	  22:50:55:347
+[Log] SEND 	seq =44956	, len =4084	 , NowSeq =49040	  22:50:55:348
+[Log] RECIEVE	 ack = 49040	, len = 0	  22:50:55:359
+[Log] Seq	 44956 send successfully! 	 22:50:55:359
+[Log] Segment	 11 of 455	 Sent Successfully	  22:50:55:360
+[Log] SEND 	seq =49040	, len =4084	 , NowSeq =53124	  22:50:55:361
+[Log] RECIEVE	 ack = 53124	, len = 0	  22:50:55:372
+[Log] Seq	 49040 send successfully! 	 22:50:55:372
+[Log] Segment	 12 of 455	 Sent Successfully	  22:50:55:377
+[Log] SEND 	seq =53124	, len =4084	 , NowSeq =57208	  22:50:55:378
+[Log] RECIEVE	 ack = 57208	, len = 0	  22:50:55:389
+[Log] Seq	 53124 send successfully! 	 22:50:55:390
+[Log] Segment	 13 of 455	 Sent Successfully	  22:50:55:393
+[Log] SEND 	seq =57208	, len =4084	 , NowSeq =61292	  22:50:55:395
+[Log] RECIEVE	 ack = 61292	, len = 0	  22:50:55:409
+[Log] Seq	 57208 send successfully! 	 22:50:55:409
+[Log] Segment	 14 of 455	 Sent Successfully	  22:50:55:409
+[Log] SEND 	seq =61292	, len =4084	 , NowSeq =65376	  22:50:55:412
+[Log] RECIEVE	 ack = 65376	, len = 0	  22:50:55:426
+[Log] Seq	 61292 send successfully! 	 22:50:55:426
+[Log] Segment	 15 of 455	 Sent Successfully	  22:50:55:427
+[Log] SEND 	seq =65376	, len =4084	 , NowSeq =3924	  22:50:55:428
+[Log] RECIEVE	 ack = 3924	, len = 0	  22:50:55:439
+[Log] Seq	 65376 send successfully! 	 22:50:55:440
+[Log] Segment	 16 of 455	 Sent Successfully	  22:50:55:444
+[Log] SEND 	seq =3924	, len =4084	 , NowSeq =8008	  22:50:55:445
+[Log] RECIEVE	 ack = 8008	, len = 0	  22:50:55:456
+[Log] Seq	 3924 send successfully! 	 22:50:55:456
+[Log] Segment	 17 of 455	 Sent Successfully	  22:50:55:457
+[Log] SEND 	seq =8008	, len =4084	 , NowSeq =12092	  22:50:55:458
+[Log] RECIEVE	 ack = 12092	, len = 0	  22:50:55:469
+[Log] Seq	 8008 send successfully! 	 22:50:55:469
+[Log] Segment	 18 of 455	 Sent Successfully	  22:50:55:474
+[Log] SEND 	seq =12092	, len =4084	 , NowSeq =16176	  22:50:55:475
+[Log] RECIEVE	 ack = 16176	, len = 0	  22:50:55:485
+[Log] Seq	 12092 send successfully! 	 22:50:55:486
+[Log] Segment	 19 of 455	 Sent Successfully	  22:50:55:488
+[Log] SEND 	seq =16176	, len =4084	 , NowSeq =20260	  22:50:55:489
+[Log] RECIEVE	 ack = 20260	, len = 0	  22:50:55:505
+[Log] Seq	 16176 send successfully! 	 22:50:55:505
+[Log] Segment	 20 of 455	 Sent Successfully	  22:50:55:506
+[Log] SEND 	seq =20260	, len =4084	 , NowSeq =24344	  22:50:55:509
+[Log] RECIEVE	 ack = 24344	, len = 0	  22:50:55:517
+[Log] Seq	 20260 send successfully! 	 22:50:55:518
+[Log] Segment	 21 of 455	 Sent Successfully	  22:50:55:523
+[Log] SEND 	seq =24344	, len =4084	 , NowSeq =28428	  22:50:55:524
+[Log] RECIEVE	 ack = 28428	, len = 0	  22:50:55:537
+[Log] Seq	 24344 send successfully! 	 22:50:55:537
+[Log] Segment	 22 of 455	 Sent Successfully	  22:50:55:538
+[Log] SEND 	seq =28428	, len =4084	 , NowSeq =32512	  22:50:55:539
+[Log] RECIEVE	 ack = 32512	, len = 0	  22:50:55:553
+[Log] Seq	 28428 send successfully! 	 22:50:55:553
+[Log] Segment	 23 of 455	 Sent Successfully	  22:50:55:554
+[Log] SEND 	seq =32512	, len =4084	 , NowSeq =36596	  22:50:55:555
+[Log] RECIEVE	 ack = 36596	, len = 0	  22:50:55:565
+[Log] Seq	 32512 send successfully! 	 22:50:55:566
+[Log] Segment	 24 of 455	 Sent Successfully	  22:50:55:568
+[Log] SEND 	seq =36596	, len =4084	 , NowSeq =40680	  22:50:55:569
+[Error] Timeout!   Resend!  50 [Log] RECIEVE	 ack = 40680	, len = 0	  22:51:27:6422
+[Error] Timeout!   Resend!:  51[Error] Timeout!   Resend!50[Error] Timeout!   Resend![Error] Timeout!   Resend!   [Error] Timeout!   Resend!    5050[Log] Seq	 36596 send successfully! 	 :2230:  51:30:[Error] Timeout!   Resend!953
+   [Error] Timeout!   Resend!22::50993 5022 2222:5151: 
+50:   :[Log] Segment	 5130:2230:5051 2222:::99351

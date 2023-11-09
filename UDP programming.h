@@ -14,6 +14,7 @@
 #include<Windows.h>
 #include<WS2tcpip.h>
 #include<time.h>
+#include <chrono>
 #include<list>
 #include <conio.h>
 #include <thread>
@@ -27,14 +28,14 @@ const std::string clientIP = "127.0.0.1";
 #define clientPort 8000
 #define routerPort 8088
 
-#define Fin 0b0001
+#define Fin 0b0001   // Finish  用于断开连接
 #define Syn 0b0010
 #define Ack 0b0100
-#define Fds 0b1000
+#define Fds 0b1000    // File Discriptor 描述文件大小与名称
 
 #define MSS 4084 //首部有12字节的各种信息,因此传输数据最大4084字节
 
-#define wait_time 100
+#define wait_time 100  //超时等待100ms
 
 struct FileHead {
 	std::string filename;
@@ -57,7 +58,7 @@ struct Message {
 	u_short seq = 0;
 	u_short ack = 0;
 	u_short check;   //校验和
-	char message[MSS];
+	char message[MSS] = { 0 };
 
 	void set_srcPort(u_short src) {
 		srcPort = src;

@@ -6,24 +6,13 @@ static SOCKET Client;
 static struct fakeHead sendHead, recvHead;
 static sockaddr_in client_addr;
 static sockaddr_in server_addr;
-
+static SYSTEMTIME sysTime = { 0 };
 static int addrlen;
 static u_short NowSeq = 0;
 static u_short NowAck = 0;
-static bool ifAck = 0;
 
 std::string savePath = "./save/";
 
-
-
-int client_test() {
-	while (true) {
-		char buff[20];
-		recvfrom(Client, buff, 20, 0, (struct sockaddr*)&client_addr, &addrlen);
-		printf("%s\n", buff);
-	}
-	return 0;
-}
 
 _Client::_Client() {
 
@@ -42,10 +31,10 @@ int _Client::client_init() {
 		printf("socket Error: %s (errno: %d)\n", strerror(errno), errno);
 		return 1;
 	}
+	GetSystemTime(&sysTime);
+	Client_log << "Client Socket Start Up!" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 
-	Client_log << "Client Socket Start Up!" << std::endl;
-
-
+	//初始化addr与伪首部
 	server_addr.sin_family = AF_INET;       //IPV4
 	server_addr.sin_port = htons(routerPort);     //PORT:8888,htons将主机小端字节转换为网络的大端字节
 	inet_pton(AF_INET, serverIP.c_str(), &server_addr.sin_addr.S_un.S_addr);
@@ -68,7 +57,7 @@ int _Client::client_init() {
 	}
 
 	printf("Waiting for Connection....\n");
-	Client_log << "Waiting for Connection...." << std::endl;
+	Client_log << "Waiting for Connection...." << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 
 	recvfile();
 
@@ -87,30 +76,33 @@ int _Client::recvfile() {
 	while (true) {
 		if (recvfrom(Client, (char*)&recvMsg, sizeof(msg), 0, (struct sockaddr*)&client_addr, &addrlen) == SOCKET_ERROR) {
 			printf("[Log] Recieving Error , try again!\n");
-			Client_log << "[log] Recieving Error , try again!" << std::endl;
+			GetSystemTime(&sysTime);
+			Client_log << "[log] Recieving Error , try again!" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 		}
 		else {
 			printf("[Log] RECIEVE seq = %d , ack = %d, len = %d ,NowSeq = %d ,NowAck = %d\n",recvMsg.seq,recvMsg.ack,recvMsg.len,NowSeq,NowAck);
-			Client_log << "[Log] RECIEVE seq = " << recvMsg.seq << ", ack = " << recvMsg.ack << ", len = " << recvMsg.len <<", NowSeq = "<<NowSeq<< ", NowAck = " << NowAck << std::endl;
-			if (recvMsg.checkValid(&recvHead) && recvMsg.seq == NowAck) {
-				if (recvMsg.if_SYN()) {
+			GetSystemTime(&sysTime);
+			Client_log << "[Log] RECIEVE\t seq = " << recvMsg.seq << "\t, ack = " << recvMsg.ack << "\t, len = " << recvMsg.len <<"\t, NowSeq = "<<NowSeq<< "\t, NowAck = " << NowAck << "\t  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
+			if (recvMsg.checkValid(&recvHead) && recvMsg.seq == NowAck) { // 校验和正确 并且Seq与Ack对应
+
+				if (recvMsg.if_SYN()) {  //握手建立连接
 					printf("[SYN] First_Hand_Shake\n");
-					Client_log << "[SYN] First_Hand_Shake" << std::endl;
+					Client_log << "[SYN] First_Hand_Shake" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 					cnt_accept(recvMsg.seq+recvMsg.len);
 				}
-				else if (recvMsg.if_FIN()) {
+				else if (recvMsg.if_FIN()) { //挥手断开连接
 					printf("[FIN] First_Wave\n");
-					Client_log << "[FIN] First_Wave" << std::endl;
+					Client_log << "[FIN] First_Wave" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 					dic_accept(recvMsg.seq + recvMsg.len);
 					return 0;
 				}
 				else {
 
-				if (recvMsg.if_FDS()) {
+				if (recvMsg.if_FDS()) {  //文件头消息
 					memset(&descriptor, 0, sizeof(struct FileHead));
 					memcpy(&descriptor, recvMsg.message, sizeof(struct FileHead));
 					printf("[FDS] Start recieving file %s \n", descriptor.filename.c_str());
-					Client_log << "[FDS] Start recieving file " << descriptor.filename << std::endl;
+					Client_log << "[FDS] Start recieving file " << descriptor.filename << "\t "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 					filelen = descriptor.filelen;
 					filename =savePath + descriptor.filename;
 					lenPointer = 0;
@@ -119,25 +111,24 @@ int _Client::recvfile() {
 
 				}
 				else {
-					Client_log << "[Log] Recieving File content of "<<recvMsg.len<<" size" << std::endl;
 					printf("[Log] Recieving File content of %d size\n", recvMsg.len);
-					file.write(recvMsg.message, recvMsg.len);
+					file.write(recvMsg.message, recvMsg.len); //文件消息,将数据写入file
 					lenPointer += recvMsg.len;
 					if (lenPointer >= filelen) {
 						printf("[Log] File %s recieved successfully!\n", filename.c_str());
-						Client_log << "[Log] File " << filename << " recieved successfully!" << std::endl;
+						Client_log << "[Log] File " << filename << " recieved successfully!" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 						file.close();
 						}
 					}
 
-				file_accept(recvMsg.seq + recvMsg.len);
+				file_accept(recvMsg.seq + recvMsg.len);  //总是以Seq+len来更新ACK,从而达到类似rdt3.0的确认接收功能
 				}
 
 				
 			}
 			else {
 				printf("[Error] Disorder OR Data Fault\n");
-				Client_log << "[Error] Disorder OR Data Fault" << std::endl;
+				Client_log << "[Error] Disorder OR Data Fault" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 			}
 
 		}
@@ -152,14 +143,16 @@ int _Client::cnt_accept(int ack) { // ACK + SYN
 	second_shake.set_desPort(serverPort);
 	second_shake.set_len(0);
 	second_shake.set_ACK();
-	second_shake.set_SYN();
+	second_shake.set_SYN(); // SYN+ACK 表示同意连接
 	second_shake.set_ack(ack);
 	second_shake.set_check(&sendHead);
 	sendto(Client, (char*)&second_shake, sizeof(msg), 0, (struct sockaddr*)&server_addr, addrlen);
 	printf("[Log] SEND ack = %d , len = %d\n", second_shake.ack, second_shake.len);
-	Client_log << "[Log] SEND ack = " << second_shake.ack << ", len = " << second_shake.len << std::endl;
+	GetSystemTime(&sysTime);
+	Client_log << "[Log] SEND ack = " << second_shake.ack << ", len = " << second_shake.len << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 	printf("[Log] Connection set up!\n");
-	Client_log << "[Log] Connection set up!" << std::endl;
+	GetSystemTime(&sysTime);
+	Client_log << "[Log] Connection set up!" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 
 	return 0;
 }
@@ -176,9 +169,11 @@ int _Client::dic_accept(int ack) { // ACK + FIN
 	dic.set_check(&sendHead);
 	sendto(Client, (char*)&dic, sizeof(msg), 0, (struct sockaddr*)&server_addr, addrlen);
 	printf("[Log] SEND ack = %d , len = %d\n", dic.ack, dic.len);
-	Client_log << "[Log] SEND ack = " << dic.ack << ", len = " << dic.len << std::endl;
+	GetSystemTime(&sysTime);
+	Client_log << "[Log] SEND ack = " << dic.ack << ", len = " << dic.len << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 	printf("[Log] Connection Killed!\n");
-	Client_log << "[Log] Connection Killed!" << std::endl;
+	GetSystemTime(&sysTime);
+	Client_log << "[Log] Connection Killed!" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 	return 0;
 }
 
@@ -193,8 +188,7 @@ int _Client::file_accept(int ack) { // ACK
 	msg_recv.set_check(&sendHead);
 	sendto(Client, (char*)&msg_recv, sizeof(msg), 0, (struct sockaddr*)&server_addr, addrlen);
 	printf("[Log] SEND ack = %d , len = %d\n", msg_recv.ack, msg_recv.len);
-	Client_log << "[Log] SEND ack = " << msg_recv.ack << ", len = " << msg_recv.len << std::endl;
-	/*printf("[Log] Message Recieved!\n");
-	Client_log << "[Log] Message Recieved!" << std::endl;*/
+	GetSystemTime(&sysTime);
+	Client_log << "[Log] SEND\t ack = " << msg_recv.ack << "\t, len = " << msg_recv.len << " \t "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 	return 0;
 }
