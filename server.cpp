@@ -14,6 +14,8 @@ static int addrlen;
 static u_short NowSeq = 0;   //消息序列号
 static u_short NowAck = 0;
 bool ifAck = 0;  //上一条消息是否被接收
+double total_time = 0;
+double total_size = 0;
  
 static std::string currentPath = "./test/";
 
@@ -108,6 +110,8 @@ int _Server::start_server() {
 	cnt_setup();  //建立握手
 
 	sendFiles();
+	printf("Successfully sent all the files, Time used: %f s, Throughput : %f Bytes/s \n", total_time,total_size/total_time);
+	Server_log << "Successfully sent all the files, time used: " << total_time << " s, Throughput : "<< total_size / total_time<<" Bytes/s" << std::endl;
 
 	cnt_dic();
 
@@ -233,7 +237,10 @@ int _Server::sendFiles() {
 			std::cout << "[Log] Send File: " << filename << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 			GetSystemTime(&sysTime);
 			Server_log << "[Log] Send File: " << filename << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
+			auto begin = std::chrono::steady_clock::now();
 			sendFile(entry);
+			auto after = std::chrono::steady_clock::now();
+			total_time += std::chrono::duration<double>(after - begin).count();
 		
 	}
 
@@ -244,6 +251,7 @@ int _Server::sendFile(std::filesystem::directory_entry entry) {
 	std::string filename = entry.path().filename().string();
 
 	int filelen = entry.file_size(); //文件大小
+	total_size += filelen;
 	struct FileHead descriptor{
 		filename,
 		filelen

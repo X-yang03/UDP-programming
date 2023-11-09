@@ -9,6 +9,7 @@ void print_menu() {
     GetConsoleScreenBufferInfo(hOutput, &bInfo);//获取窗口长度
     int len = bInfo.dwSize.X / 2 - strlen(menu) / 2;//空多少个格
     std::cout << std::setw(len) << " " << menu << std::endl;
+    std::cout << std::setw(len) << " " << "First start a Recieve end , Then start a Send end!" << std::endl;
 }
 
 int main()
