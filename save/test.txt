@@ -1,0 +1,14 @@
+test
+As software-as-a-service and Cloud computing become
+increasingly popular, server and Cloud applications exhibit
+notoriously large instruction sets that do not fit in the first
+level instruction cache (L1I), leading to high L1I miss rates
+and therefore stalls. This causes significant performance degradation, in addition to wasteful energy expenditure and underutilization of resources.
+Until now, processors have been traditionally designed for
+scientific and desktop applications, with very different characteristics, making them inefficient for the large and everincreasing instruction footprint of server applications. According to a study conducted by Google [25] over three years on
+one of their Warehouse Scale Computing (WSC) live centers
+with tens of thousands of server machines running workloads
+and services used by billions of users, processors do useful
+work for only 10-20% of the time, stalling for more than 80%
+of the time. This analysis demonstrates that one of the main
+reasons of stalling is that instructions are not available for

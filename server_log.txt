@@ -1,0 +1,12 @@
+[Log] Server Socket Start Up!
+[Log] Connecting to client..........
+[SYN] Seq= 0len = 0
+[Log] : Seq 0 send successfully!
+[Log] Connection Set Up£¡
+[Log] Send File: test.txt
+[Log] Send file head
+[Log] : Seq 0 send successfully!
+[Log] : Seq 32 send successfully!
+[Log] Segment %d of %d Sent Successfully
+[Log] : Seq 709 send successfully!
+[Log] Connection destroyed!
