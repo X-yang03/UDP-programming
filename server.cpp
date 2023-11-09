@@ -147,7 +147,7 @@ int _Server::sendMsg(msg message) {  //发送单条数据
 	ifAck = 0;
 
 	std::thread timeout_resend([&]() {  //超时重传
-		if (message.if_SYN()) {  //如果是握手超时,则每3s重新连接
+		if (!message.if_SYN()) {  //如果是握手超时,则每3s重新连接
 			while (!ifAck) {
 				int wait = 0;
 				while (wait < wait_time && !ifAck) {

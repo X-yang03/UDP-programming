@@ -1,8 +1,19 @@
 #include "UDP programming.h"
 
+void print_menu() {
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+    char menu[100] = { 0 };
+    strcpy(menu, intro);
+    HANDLE hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO bInfo;
+    GetConsoleScreenBufferInfo(hOutput, &bInfo);//获取窗口长度
+    int len = bInfo.dwSize.X / 2 - strlen(menu) / 2;//空多少个格
+    std::cout << std::setw(len) << " " << menu << std::endl;
+}
+
 int main()
 {
-    printf("Type 'send' to start as server\n Type 'recv' to start as client\n");
+    print_menu();
 
     char com[10];
     while (true) {
