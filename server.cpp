@@ -144,9 +144,9 @@ int _Server::sendMsg(msg message) {  //发送单条数据
 	sendto(Server, (char*)&message, sizeof(msg), 0, (struct sockaddr*)&client_addr, addrlen);
 	//printf("check : %d\n", message.check);
 	NowSeq += (message.len);  //更新Seq
-	printf("[Log] SEND seq = %d,len = %d, NowSeq = %d\n", message.seq, message.len, NowSeq);
+	printf("[Log] SEND seq = %d,len = %d, NowSeq = %d , Check = %d\n", message.seq, message.len, NowSeq,message.check);
 	GetSystemTime(&sysTime);
-	Server_log << "[Log] SEND \tseq =" << message.seq << "\t, len =" << message.len << "\t , NowSeq =" << NowSeq << "\t  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
+	Server_log << "[Log] SEND \tseq =" << message.seq << "\t, len =" << message.len << "\t , NowSeq =" << NowSeq <<"\t , Check ="<<message.check << "\t  " << sysTime.wHour + 8 << ":" << sysTime.wMinute << ":" << sysTime.wSecond << ":" << sysTime.wMilliseconds << std::endl;
 	
 	ifAck = 0;
 
@@ -211,16 +211,17 @@ int _Server::sendMsg(msg message) {  //发送单条数据
 
 			}
 			else { 
-				int errorType = 0;
-				if (recv_msg.checkValid(&recvHead)) {
-					errorType = 1; // ack != NowSeq
+				if (recv_msg.checkValid(&recvHead)) {  //由于延迟等原因，收到此前的Ack应答消息，不作处理
+					printf("[Error] Ack %d != NowSeq %d \n", recv_msg.ack, NowSeq);
+					GetSystemTime(&sysTime);
+					Server_log << "[Error] Ack " << recv_msg.ack << " != NowSeq " << NowSeq << "  " << sysTime.wHour + 8 << ":" << sysTime.wMinute << ":" << sysTime.wSecond << ":" << sysTime.wMilliseconds<< std::endl;
 				}
 				else {
-					errorType = 2; // 校验和出错
+					printf("[Error] Valid Error , try to resend!\n");  //校验码错误
+					GetSystemTime(&sysTime);
+					Server_log << "[Error] Valid Error, try to resend!" << "  " << sysTime.wHour + 8 << ":" << sysTime.wMinute << ":" << sysTime.wSecond << ":" << sysTime.wMilliseconds << std::endl;
+					
 				}
-				printf("[Error] Valid Error %d , try to resend!\n",errorType);
-				GetSystemTime(&sysTime);
-				Server_log << "[Error] Valid Error "<<errorType<<" , try to resend!" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 			}
 		}
 

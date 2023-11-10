@@ -60,7 +60,8 @@ int _Client::client_init() {
 	Client_log << "Waiting for Connection...." << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 
 	recvfile();
-
+	WSACleanup();
+	system("pause");
 	return 0;
 }
 
@@ -80,9 +81,9 @@ int _Client::recvfile() {
 			Client_log << "[log] Recieving Error , try again!" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 		}
 		else {
-			printf("[Log] RECIEVE seq = %d , ack = %d, len = %d ,NowSeq = %d ,NowAck = %d\n",recvMsg.seq,recvMsg.ack,recvMsg.len,NowSeq,NowAck);
+			printf("[Log] RECIEVE seq = %d , ack = %d, len = %d ,check = %d ,NowAck = %d\n",recvMsg.seq,recvMsg.ack,recvMsg.len,recvMsg.check,NowAck);
 			GetSystemTime(&sysTime);
-			Client_log << "[Log] RECIEVE\t seq = " << recvMsg.seq << "\t, ack = " << recvMsg.ack << "\t, len = " << recvMsg.len <<"\t, NowSeq = "<<NowSeq<< "\t, NowAck = " << NowAck << "\t  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
+			Client_log << "[Log] RECIEVE\t seq = " << recvMsg.seq << "\t, ack = " << recvMsg.ack << "\t, len = " << recvMsg.len <<"\t, check = "<<recvMsg.check << "\t, NowAck = " << NowAck << "\t  " << sysTime.wHour + 8 << ":" << sysTime.wMinute << ":" << sysTime.wSecond << ":" << sysTime.wMilliseconds << std::endl;
 			if (recvMsg.checkValid(&recvHead) && recvMsg.seq == NowAck) { // 校验和正确 并且Seq与Ack对应
 
 				if (recvMsg.if_SYN()) {  //握手建立连接
@@ -127,6 +128,12 @@ int _Client::recvfile() {
 				
 			}
 			else {
+				if (recvMsg.if_SYN()) {
+					cnt_accept(NowAck);
+				}
+				else {
+					file_accept(NowAck);
+				}
 				printf("[Error] Disorder OR Data Fault\n");
 				Client_log << "[Error] Disorder OR Data Fault" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 			}
@@ -168,6 +175,27 @@ int _Client::dic_accept(int ack) { // ACK + FIN
 	dic.set_ack(ack);
 	dic.set_check(&sendHead);
 	sendto(Client, (char*)&dic, sizeof(msg), 0, (struct sockaddr*)&server_addr, addrlen);
+	std::thread wait2MSL([&]() {  //等待2MSL的时间
+		msg recvMsg;
+		while (true) {
+			int valid = recvfrom(Client, (char*)&recvMsg, sizeof(msg), 0, (struct sockaddr*)&client_addr, &addrlen);
+			if (valid == SOCKET_ERROR) {
+				break;
+			}
+			else {
+				if (recvMsg.if_FIN()) {
+					sendto(Client, (char*)&dic, sizeof(msg), 0, (struct sockaddr*)&server_addr, addrlen);
+				}
+			}
+		}
+
+	});
+	printf("[Log] Wait for 2 MSL...\n");
+	Client_log << "[Log] Wait for 2 MSL..." << std::endl;
+	Sleep(2 * MSL);
+	closesocket(Client);  //等待2MSL时间后，若无连接则关闭Socket，使thread退出
+
+	wait2MSL.join();
 	printf("[Log] SEND ack = %d , len = %d\n", dic.ack, dic.len);
 	GetSystemTime(&sysTime);
 	Client_log << "[Log] SEND ack = " << dic.ack << ", len = " << dic.len << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;

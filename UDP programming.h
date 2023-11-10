@@ -38,6 +38,7 @@ const std::string clientIP = "127.0.0.1";
 #define MSS 4084 //首部有12字节的各种信息,因此传输数据最大4084字节
 
 #define wait_time 100  //超时等待100ms
+#define MSL 2000
 
 struct FileHead {
 	std::string filename;
@@ -92,9 +93,9 @@ struct Message {
 
 	bool if_SYN(){ return flag & Syn; }
 
-	bool if_FIN(){ return flag & Syn; }
+	bool if_FIN(){ return flag & Fin; }
 
-	bool if_ACK(){ return flag & Syn; }
+	bool if_ACK(){ return flag & Ack; }
 
 	bool if_FDS() { return flag & Fds; }
 
@@ -132,6 +133,7 @@ struct Message {
 			sum = (sum & 0xffff) + (sum >> 16);
 		}
 		//printf("seq = %d, ack = %d , check valid: %d\n", seq, ack, sum);
+
 		return sum == 0x0ffff;
 	}
 
