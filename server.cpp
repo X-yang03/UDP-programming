@@ -146,7 +146,7 @@ int _Server::sendMsg(msg message) {  //发送单条数据
 	NowSeq += (message.len);  //更新Seq
 	printf("[Log] SEND seq = %d,len = %d, NowSeq = %d , Check = %d\n", message.seq, message.len, NowSeq,message.check);
 	GetSystemTime(&sysTime);
-	Server_log << "[Log] SEND \tseq =" << message.seq << "\t, len =" << message.len << "\t , NowSeq =" << NowSeq <<"\t , Check ="<<message.check << "\t  " << sysTime.wHour + 8 << ":" << sysTime.wMinute << ":" << sysTime.wSecond << ":" << sysTime.wMilliseconds << std::endl;
+	Server_log << "[Log] SEND \tseq = " << message.seq << "\t, len =" << message.len << "\t , NowSeq =" << NowSeq <<"\t , Check ="<<message.check << "\t  " << sysTime.wHour + 8 << ":" << sysTime.wMinute << ":" << sysTime.wSecond << ":" << sysTime.wMilliseconds << std::endl;
 	
 	ifAck = 0;
 
@@ -161,7 +161,7 @@ int _Server::sendMsg(msg message) {  //发送单条数据
 				if (!ifAck) { //由于超时进入该条件判断
 					printf("[Error] Timeout!   Resend!\n");
 					GetSystemTime(&sysTime);
-					Server_log << "[Error] Timeout!   Resend!" << "  " << wait << " " << sysTime.wHour + 8 << ":" << sysTime.wMinute << ":" << sysTime.wSecond << ":" << sysTime.wMilliseconds << std::endl;
+					Server_log << "[Error] Timeout!   Resend!" << " " << sysTime.wHour + 8 << ":" << sysTime.wMinute << ":" << sysTime.wSecond << ":" << sysTime.wMilliseconds << std::endl;
 
 					sendto(Server, (char*)&message, sizeof(msg), 0, (struct sockaddr*)&client_addr, addrlen);
 
