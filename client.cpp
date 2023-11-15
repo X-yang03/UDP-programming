@@ -1,3 +1,4 @@
+//client.cppå®Œæˆæ¥æ”¶ç«¯éƒ¨åˆ†
 #include"UDP programming.h"
 
 std::fstream Client_log;
@@ -34,9 +35,9 @@ int _Client::client_init() {
 	GetSystemTime(&sysTime);
 	Client_log << "Client Socket Start Up!" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 
-	//³õÊ¼»¯addrÓëÎ±Ê×²¿
+	//åˆå§‹åŒ–addrä¸ä¼ªé¦–éƒ¨
 	server_addr.sin_family = AF_INET;       //IPV4
-	server_addr.sin_port = htons(routerPort);     //PORT:8888,htons½«Ö÷»úĞ¡¶Ë×Ö½Ú×ª»»ÎªÍøÂçµÄ´ó¶Ë×Ö½Ú
+	server_addr.sin_port = htons(routerPort);     //PORT:8888,htonså°†ä¸»æœºå°ç«¯å­—èŠ‚è½¬æ¢ä¸ºç½‘ç»œçš„å¤§ç«¯å­—èŠ‚
 	inet_pton(AF_INET, serverIP.c_str(), &server_addr.sin_addr.S_un.S_addr);
 
 	client_addr.sin_family = AF_INET;       //IPV4
@@ -51,7 +52,7 @@ int _Client::client_init() {
 
 	addrlen = sizeof(client_addr);
 
-	if (bind(Client, (LPSOCKADDR)&client_addr, addrlen) == SOCKET_ERROR) { //½«ClientÓëclient_addr°ó¶¨
+	if (bind(Client, (LPSOCKADDR)&client_addr, addrlen) == SOCKET_ERROR) { //å°†Clientä¸client_addrç»‘å®š
 		printf("bind Error: %s (errno: %d)\n", strerror(errno), errno);
 		return 1;
 	}
@@ -65,7 +66,7 @@ int _Client::client_init() {
 	return 0;
 }
 
-int _Client::recvfile() {
+int _Client::recvfile() { //æ¥æ”¶æ–‡ä»¶çš„å‡½æ•°
 	msg recvMsg;
 
 	std::fstream file;
@@ -84,14 +85,14 @@ int _Client::recvfile() {
 			printf("[Log] RECIEVE seq = %d , ack = %d, len = %d ,check = %d ,NowAck = %d\n",recvMsg.seq,recvMsg.ack,recvMsg.len,recvMsg.check,NowAck);
 			GetSystemTime(&sysTime);
 			Client_log << "[Log] RECIEVE\t seq = " << recvMsg.seq << "\t, ack = " << recvMsg.ack << "\t, len = " << recvMsg.len <<"\t, check = "<<recvMsg.check << "\t, NowAck = " << NowAck << "\t  " << sysTime.wHour + 8 << ":" << sysTime.wMinute << ":" << sysTime.wSecond << ":" << sysTime.wMilliseconds << std::endl;
-			if (recvMsg.checkValid(&recvHead) && recvMsg.seq == NowAck) { // Ğ£ÑéºÍÕıÈ· ²¢ÇÒSeqÓëAck¶ÔÓ¦
+			if (recvMsg.checkValid(&recvHead) && recvMsg.seq == NowAck) { // æ ¡éªŒå’Œæ­£ç¡® å¹¶ä¸”Seqä¸Ackå¯¹åº”
 
-				if (recvMsg.if_SYN()) {  //ÎÕÊÖ½¨Á¢Á¬½Ó
+				if (recvMsg.if_SYN()) {  //æ¡æ‰‹å»ºç«‹è¿æ¥
 					printf("[SYN] First_Hand_Shake\n");
 					Client_log << "[SYN] First_Hand_Shake" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 					cnt_accept(recvMsg.seq+recvMsg.len);
 				}
-				else if (recvMsg.if_FIN()) { //»ÓÊÖ¶Ï¿ªÁ¬½Ó
+				else if (recvMsg.if_FIN()) { //æŒ¥æ‰‹æ–­å¼€è¿æ¥
 					printf("[FIN] First_Wave\n");
 					Client_log << "[FIN] First_Wave" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 					dic_accept(recvMsg.seq + recvMsg.len);
@@ -99,35 +100,35 @@ int _Client::recvfile() {
 				}
 				else {
 
-				if (recvMsg.if_FDS()) {  //ÎÄ¼şÍ·ÏûÏ¢
-					memset(&descriptor, 0, sizeof(struct FileHead));
-					memcpy(&descriptor, recvMsg.message, sizeof(struct FileHead));
-					printf("[FDS] Start recieving file %s \n", descriptor.filename.c_str());
-					Client_log << "[FDS] Start recieving file " << descriptor.filename << "\t "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
-					filelen = descriptor.filelen;
-					filename =savePath + descriptor.filename;
-					lenPointer = 0;
-					file.open(filename, std::ios::out | std::ios::binary);
-					//file.close();
+					if (recvMsg.if_FDS()) {  //æ–‡ä»¶å¤´æ¶ˆæ¯
+						memset(&descriptor, 0, sizeof(struct FileHead));
+						memcpy(&descriptor, recvMsg.message, sizeof(struct FileHead));
+						printf("[FDS] Start recieving file %s \n", descriptor.filename.c_str());
+						Client_log << "[FDS] Start recieving file " << descriptor.filename << "\t "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
+						filelen = descriptor.filelen;
+						filename =savePath + descriptor.filename;
+						lenPointer = 0;
+						file.open(filename, std::ios::out | std::ios::binary); //æ‰“å¼€æ–°æ–‡ä»¶ï¼Œå‡†å¤‡å†™å…¥
+						//file.close();
 
-				}
-				else {
-					printf("[Log] Recieving File content of %d size\n", recvMsg.len);
-					file.write(recvMsg.message, recvMsg.len); //ÎÄ¼şÏûÏ¢,½«Êı¾İĞ´Èëfile
-					lenPointer += recvMsg.len;
-					if (lenPointer >= filelen) {
-						printf("[Log] File %s recieved successfully!\n", filename.c_str());
-						Client_log << "[Log] File " << filename << " recieved successfully!" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
-						file.close();
-						}
 					}
+					else {
+						printf("[Log] Recieving File content of %d size\n", recvMsg.len);
+						file.write(recvMsg.message, recvMsg.len); //æ–‡ä»¶æ¶ˆæ¯,å°†æ•°æ®å†™å…¥file
+						lenPointer += recvMsg.len;
+						if (lenPointer >= filelen) { //æŒ‡é’ˆç§»åŠ¨åˆ°æœ«å°¾ï¼Œè¯´æ˜å·²ç»å†™å…¥å®Œæˆ
+							printf("[Log] File %s recieved successfully!\n", filename.c_str());
+							Client_log << "[Log] File " << filename << " recieved successfully!" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
+							file.close();
+							}
+						}
 
-				file_accept(recvMsg.seq + recvMsg.len);  //×ÜÊÇÒÔSeq+lenÀ´¸üĞÂACK,´Ó¶ø´ïµ½ÀàËÆrdt3.0µÄÈ·ÈÏ½ÓÊÕ¹¦ÄÜ
+					file_accept(recvMsg.seq + recvMsg.len);  //æ€»æ˜¯ä»¥Seq+lenæ¥æ›´æ–°ACK,ä»è€Œè¾¾åˆ°ç±»ä¼¼rdt3.0çš„ç¡®è®¤æ¥æ”¶åŠŸèƒ½
 				}
 
 				
 			}
-			else {
+			else if(recvMsg.seq != NowAck){ //å¦‚æœæ˜¯æ ¡éªŒå’Œå‡ºé”™åˆ™ä¸åšå¤„ç†ï¼Œå¼•å‘è¶…æ—¶é‡ä¼ 
 				if (recvMsg.if_SYN()) {
 					cnt_accept(NowAck);
 				}
@@ -150,7 +151,7 @@ int _Client::cnt_accept(int ack) { // ACK + SYN
 	second_shake.set_desPort(serverPort);
 	second_shake.set_len(0);
 	second_shake.set_ACK();
-	second_shake.set_SYN(); // SYN+ACK ±íÊ¾Í¬ÒâÁ¬½Ó
+	second_shake.set_SYN(); // SYN+ACK è¡¨ç¤ºåŒæ„è¿æ¥
 	second_shake.set_ack(ack);
 	second_shake.set_check(&sendHead);
 	sendto(Client, (char*)&second_shake, sizeof(msg), 0, (struct sockaddr*)&server_addr, addrlen);
@@ -175,7 +176,11 @@ int _Client::dic_accept(int ack) { // ACK + FIN
 	dic.set_ack(ack);
 	dic.set_check(&sendHead);
 	sendto(Client, (char*)&dic, sizeof(msg), 0, (struct sockaddr*)&server_addr, addrlen);
-	std::thread wait2MSL([&]() {  //µÈ´ı2MSLµÄÊ±¼ä
+	printf("[Log] SEND ack = %d , len = %d\n", dic.ack, dic.len);
+	GetSystemTime(&sysTime);
+	Client_log << "[Log] SEND ack = " << dic.ack << ", len = " << dic.len << "  " << sysTime.wHour + 8 << ":" << sysTime.wMinute << ":" << sysTime.wSecond << ":" << sysTime.wMilliseconds << std::endl;
+
+	std::thread wait2MSL([&]() {  //ç­‰å¾…2MSLçš„æ—¶é—´
 		msg recvMsg;
 		while (true) {
 			int valid = recvfrom(Client, (char*)&recvMsg, sizeof(msg), 0, (struct sockaddr*)&client_addr, &addrlen);
@@ -193,12 +198,9 @@ int _Client::dic_accept(int ack) { // ACK + FIN
 	printf("[Log] Wait for 2 MSL...\n");
 	Client_log << "[Log] Wait for 2 MSL..." << std::endl;
 	Sleep(2 * MSL);
-	closesocket(Client);  //µÈ´ı2MSLÊ±¼äºó£¬ÈôÎŞÁ¬½ÓÔò¹Ø±ÕSocket£¬Ê¹threadÍË³ö
+	closesocket(Client);  //ç­‰å¾…2MSLæ—¶é—´åï¼Œè‹¥æ— è¿æ¥åˆ™å…³é—­Socketï¼Œä½¿threadé€€å‡º
 
 	wait2MSL.join();
-	printf("[Log] SEND ack = %d , len = %d\n", dic.ack, dic.len);
-	GetSystemTime(&sysTime);
-	Client_log << "[Log] SEND ack = " << dic.ack << ", len = " << dic.len << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 	printf("[Log] Connection Killed!\n");
 	GetSystemTime(&sysTime);
 	Client_log << "[Log] Connection Killed!" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
