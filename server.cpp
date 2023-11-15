@@ -1,9 +1,10 @@
   
+//server.cppå®ç°å‘é€ç«¯éƒ¨åˆ†
 #include "UDP programming.h"
 #include <WinSock.h>
 #include <IPHlpApi.h>
 
-static std::fstream Server_log;
+static std::fstream Server_log; //æ—¥å¿—è¾“å‡ºï¼Œä¿å­˜ä¸ºserver_log.txt
  
 static SOCKET Server;
 static struct fakeHead sendHead, recvHead;
@@ -11,56 +12,13 @@ static sockaddr_in client_addr;
 static sockaddr_in server_addr;
 static SYSTEMTIME sysTime = { 0 };
 static int addrlen;
-static u_short NowSeq = 0;   //ÏûÏ¢ĞòÁĞºÅ
+static u_short NowSeq = 0;   //æ¶ˆæ¯åºåˆ—å·
 static u_short NowAck = 0;
-bool ifAck = 0;  //ÉÏÒ»ÌõÏûÏ¢ÊÇ·ñ±»½ÓÊÕ
+bool ifAck = 0;  //ä¸Šä¸€æ¡æ¶ˆæ¯æ˜¯å¦è¢«æ¥æ”¶
 double total_time = 0;
 double total_size = 0;
  
 static std::string currentPath = "./test/";
-
-//DWORD WINAPI timeout_resend(LPVOID lpParam) {  //³¬Ê±ÖØ´«Ïß³Ì
-//	msg *message = (msg*)lpParam;
-//	if (!message->if_SYN()) { 
-//		while (!ifAck) {
-//			int wait = 0;
-//			while (wait < wait_time && !ifAck) {
-//				Sleep(1);
-//				wait += 1;
-//			}
-//			if (!ifAck) { //ÓÉÓÚ³¬Ê±½øÈë¸ÃÌõ¼şÅĞ¶Ï
-//				printf("[Error] Timeout!   Resend!\n");
-//				GetSystemTime(&sysTime);
-//				Server_log << "[Error] Timeout!   Resend!" << "  "<<wait<<" " << sysTime.wHour + 8 << ":" << sysTime.wMinute << ":" << sysTime.wSecond << ":" << sysTime.wMilliseconds << std::endl;
-//
-//				sendto(Server, (char*)message, sizeof(msg), 0, (struct sockaddr*)&client_addr, addrlen);
-//				
-//			}
-//			if (ifAck) {
-//				return 0;
-//			}
-//		}
-//	}
-//	else {
-//		while (!ifAck) {
-//			int wait = 0;
-//			while (wait < 5000 && !ifAck) {
-//				Sleep(1);
-//				wait += 1;
-//			}
-//			if (!ifAck) { //ÓÉÓÚ³¬Ê±½øÈë¸ÃÌõ¼şÅĞ¶Ï
-//				
-//				printf("[Error] Timeout!   Re-Connect!\n");
-//				GetSystemTime(&sysTime);
-//				Server_log << "[Error] Timeout!   Re-Connect!" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
-//
-//				sendto(Server, (char*)message, sizeof(msg), 0, (struct sockaddr*)&client_addr, addrlen);
-//			}
-//		}
-//	}
-//	return 0;
-//}
-
 
 _Server::_Server() {
 	
@@ -82,9 +40,9 @@ int _Server::start_server() {
 	GetSystemTime(&sysTime);
 	Server_log << "[Log] Server Socket Start Up!" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 
-	// ³õÊ¼»¯µØÖ·ºÍÎ±Ê×²¿
+	// åˆå§‹åŒ–åœ°å€å’Œä¼ªé¦–éƒ¨
 	server_addr.sin_family = AF_INET;       //IPV4
-	server_addr.sin_port = htons(serverPort);     //PORT:8888,htons½«Ö÷»úĞ¡¶Ë×Ö½Ú×ª»»ÎªÍøÂçµÄ´ó¶Ë×Ö½Ú
+	server_addr.sin_port = htons(serverPort);     //PORT:8888,htonså°†ä¸»æœºå°ç«¯å­—èŠ‚è½¬æ¢ä¸ºç½‘ç»œçš„å¤§ç«¯å­—èŠ‚
 	inet_pton(AF_INET, serverIP.c_str(), &server_addr.sin_addr.S_un.S_addr);
 
 	client_addr.sin_family = AF_INET;       //IPV4
@@ -92,14 +50,14 @@ int _Server::start_server() {
 	inet_pton(AF_INET, clientIP.c_str(), &client_addr.sin_addr.S_un.S_addr);
 	
 	sendHead.srcIP = server_addr.sin_addr.S_un.S_addr;
-	sendHead.desIP = client_addr.sin_addr.S_un.S_addr; //Î±Ê×²¿³õÊ¼»¯
+	sendHead.desIP = client_addr.sin_addr.S_un.S_addr; //ä¼ªé¦–éƒ¨åˆå§‹åŒ–
 
 	recvHead.srcIP = client_addr.sin_addr.S_un.S_addr;
 	recvHead.desIP = server_addr.sin_addr.S_un.S_addr;
 
 	addrlen = sizeof(client_addr);
 	
-	if (bind(Server, (LPSOCKADDR)&server_addr, sizeof(server_addr)) == SOCKET_ERROR) { //½«ServerÓëserver_addr°ó¶¨
+	if (bind(Server, (LPSOCKADDR)&server_addr, sizeof(server_addr)) == SOCKET_ERROR) { //å°†Serverä¸server_addrç»‘å®š
 		printf("bind Error: %s (errno: %d)\n", strerror(errno), errno);
 		return 1;
 	}
@@ -107,13 +65,13 @@ int _Server::start_server() {
 	printf("[Log] Connecting to client..........\n");
 	Server_log << "[Log] Connecting to client.........." << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 
-	cnt_setup();  //½¨Á¢ÎÕÊÖ
+	cnt_setup();  //å»ºç«‹æ¡æ‰‹
 
 	sendFiles();
 	printf("Successfully sent all the files, Time used: %f s, Throughput : %f Bytes/s \n", total_time,total_size/total_time);
 	Server_log << "Successfully sent all the files, time used: " << total_time << " s, Throughput : "<< total_size / total_time<<" Bytes/s" << std::endl;
 
-	cnt_dic();
+	cnt_dic(); //æŒ¥æ‰‹æ–­å¼€è¿æ¥
 
 	closesocket(Server);
 	WSACleanup();
@@ -126,7 +84,7 @@ int _Server::cnt_setup() {
 	first_shake.set_desPort(clientPort);
 	first_shake.set_len(0);
 	first_shake.set_seq(NowSeq);
-	first_shake.set_SYN();   //µÚÒ»´ÎÎÕÊÖ,½ö·¢³öÒ»ÌõSYNÏûÏ¢
+	first_shake.set_SYN();   //ç¬¬ä¸€æ¬¡æ¡æ‰‹,ä»…å‘å‡ºä¸€æ¡SYNæ¶ˆæ¯
 	first_shake.set_check(&sendHead);
 
 	printf("[SYN] Seq=%d  len=%d\n", first_shake.seq, first_shake.len);
@@ -134,31 +92,30 @@ int _Server::cnt_setup() {
 	Server_log << "[SYN] Seq= " << first_shake.seq << "\tlen = " << first_shake.len << "\t  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 	sendMsg(first_shake);
 
-	printf("[Log] Connection Set Up£¡\n");
+	printf("[Log] Connection Set Upï¼\n");
 	GetSystemTime(&sysTime);
-	Server_log << "[Log] Connection Set Up£¡" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
+	Server_log << "[Log] Connection Set Upï¼" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 	return 0;
 }
 
-int _Server::sendMsg(msg message) {  //·¢ËÍµ¥ÌõÊı¾İ
+int _Server::sendMsg(msg message) {  //å‘é€å•æ¡æ•°æ®
 	sendto(Server, (char*)&message, sizeof(msg), 0, (struct sockaddr*)&client_addr, addrlen);
-	//printf("check : %d\n", message.check);
-	NowSeq += (message.len);  //¸üĞÂSeq
+	NowSeq += (message.len);  //æ›´æ–°Seq
 	printf("[Log] SEND seq = %d,len = %d, NowSeq = %d , Check = %d\n", message.seq, message.len, NowSeq,message.check);
 	GetSystemTime(&sysTime);
 	Server_log << "[Log] SEND \tseq = " << message.seq << "\t, len =" << message.len << "\t , NowSeq =" << NowSeq <<"\t , Check ="<<message.check << "\t  " << sysTime.wHour + 8 << ":" << sysTime.wMinute << ":" << sysTime.wSecond << ":" << sysTime.wMilliseconds << std::endl;
 	
 	ifAck = 0;
 
-	std::thread timeout_resend([&]() {  //³¬Ê±ÖØ´«
-		if (!message.if_SYN()) {  //Èç¹ûÊÇÎÕÊÖ³¬Ê±,ÔòÃ¿3sÖØĞÂÁ¬½Ó
+	std::thread timeout_resend([&]() {  //è¶…æ—¶é‡ä¼ 
+		if (!message.if_SYN()) {  //å¦‚æœæ˜¯æ¡æ‰‹è¶…æ—¶,åˆ™æ¯3sé‡æ–°è¿æ¥
 			while (!ifAck) {
 				int wait = 0;
 				while (wait < wait_time && !ifAck) {
 					Sleep(1);
 					wait += 1;
 				}
-				if (!ifAck) { //ÓÉÓÚ³¬Ê±½øÈë¸ÃÌõ¼şÅĞ¶Ï
+				if (!ifAck) { //ç”±äºè¶…æ—¶è¿›å…¥è¯¥æ¡ä»¶åˆ¤æ–­
 					printf("[Error] Timeout!   Resend!\n");
 					GetSystemTime(&sysTime);
 					Server_log << "[Error] Timeout!   Resend!" << " " << sysTime.wHour + 8 << ":" << sysTime.wMinute << ":" << sysTime.wSecond << ":" << sysTime.wMilliseconds << std::endl;
@@ -175,7 +132,7 @@ int _Server::sendMsg(msg message) {  //·¢ËÍµ¥ÌõÊı¾İ
 					Sleep(1);
 					wait += 1;
 				}
-				if (!ifAck) { //ÓÉÓÚ³¬Ê±½øÈë¸ÃÌõ¼şÅĞ¶Ï
+				if (!ifAck) { //ç”±äºè¶…æ—¶è¿›å…¥è¯¥æ¡ä»¶åˆ¤æ–­
 					printf("[Error] Timeout!   Re-Connect!\n");
 					GetSystemTime(&sysTime);
 					Server_log << "[Error] Timeout!   Re-Connect!" << "  " << wait << " " << sysTime.wHour + 8 << ":" << sysTime.wMinute << ":" << sysTime.wSecond << ":" << sysTime.wMilliseconds << std::endl;
@@ -186,8 +143,6 @@ int _Server::sendMsg(msg message) {  //·¢ËÍµ¥ÌõÊı¾İ
 			}
 		}
 		});
-	//HANDLE handle = CreateThread(NULL, 0, timeout_resend, &message, 0, NULL);  //´´½¨¼ì²â³¬Ê±Ïß³Ì,ÓÃÓÚ³¬Ê±ÖØ´«
-	//CloseHandle(handle);
 
 	while (true) {
 		msg recv_msg;
@@ -196,28 +151,28 @@ int _Server::sendMsg(msg message) {  //·¢ËÍµ¥ÌõÊı¾İ
 			printf("[Error] Recieving Error , try to resend!\n");
 			Server_log << "[Error] Recieving Error , try to resend!" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 		}
-		else { //³É¹¦½ÓÊÕµ½»Ø¸´
+		else { //æˆåŠŸæ¥æ”¶åˆ°å›å¤
 			printf("[Log] RECIEVE ack = %d , len = %d\n", recv_msg.ack, recv_msg.len);
 			GetSystemTime(&sysTime);
 			Server_log << "[Log] RECIEVE\t ack = " << recv_msg.ack << "\t, len = " << recv_msg.len << "\t  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
-			if (recv_msg.checkValid(&recvHead) && recv_msg.ack == NowSeq) {  //Ğ£ÑéºÍÕıÈ·,ÇÒSeqÓëack¶ÔÓ¦
+			if (recv_msg.checkValid(&recvHead) && recv_msg.ack == NowSeq) {  //æ ¡éªŒå’Œæ­£ç¡®,ä¸”Seqä¸ackå¯¹åº”
 				ifAck = 1;
 				timeout_resend.join();
 				NowAck = recv_msg.seq + recv_msg.len; 
 				printf("[Log] Seq %d send successfully!\n", message.seq);
 				GetSystemTime(&sysTime);
-				Server_log << "[Log] Seq" << message.seq << " send successfully!" << " \t "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
+				Server_log << "[Log] Seq " << message.seq << " send successfully!" << " \t "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
 				break;
 
 			}
 			else { 
-				if (recv_msg.checkValid(&recvHead)) {  //ÓÉÓÚÑÓ³ÙµÈÔ­Òò£¬ÊÕµ½´ËÇ°µÄAckÓ¦´ğÏûÏ¢£¬²»×÷´¦Àí
+				if (recv_msg.checkValid(&recvHead)) {  //ç”±äºå»¶è¿Ÿç­‰åŸå› ï¼Œæ”¶åˆ°æ­¤å‰çš„Ackåº”ç­”æ¶ˆæ¯ï¼Œä¸ä½œå¤„ç†
 					printf("[Error] Ack %d != NowSeq %d \n", recv_msg.ack, NowSeq);
 					GetSystemTime(&sysTime);
 					Server_log << "[Error] Ack " << recv_msg.ack << " != NowSeq " << NowSeq << "  " << sysTime.wHour + 8 << ":" << sysTime.wMinute << ":" << sysTime.wSecond << ":" << sysTime.wMilliseconds<< std::endl;
 				}
 				else {
-					printf("[Error] Valid Error , try to resend!\n");  //Ğ£ÑéÂë´íÎó
+					printf("[Error] Valid Error , try to resend!\n");  //æ ¡éªŒç é”™è¯¯
 					GetSystemTime(&sysTime);
 					Server_log << "[Error] Valid Error, try to resend!" << "  " << sysTime.wHour + 8 << ":" << sysTime.wMinute << ":" << sysTime.wSecond << ":" << sysTime.wMilliseconds << std::endl;
 					
@@ -230,9 +185,9 @@ int _Server::sendMsg(msg message) {  //·¢ËÍµ¥ÌõÊı¾İ
 	return 0;
 }
 
-int _Server::sendFiles() {
+int _Server::sendFiles() { //éœ€è¦å¼€å¯C++17æ ‡å‡†
 
-	for (const auto& entry : std::filesystem::directory_iterator(currentPath)) {  //»ñÈ¡ËùÓĞÎÄ¼şentry
+	for (const auto& entry : std::filesystem::directory_iterator(currentPath)) {  //è·å–æ‰€æœ‰æ–‡ä»¶entry
 		
 			std::string filename = entry.path().filename().string();
 			std::cout << "[Log] Send File: " << filename << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
@@ -251,7 +206,7 @@ int _Server::sendFiles() {
 int _Server::sendFile(std::filesystem::directory_entry entry) {
 	std::string filename = entry.path().filename().string();
 
-	int filelen = entry.file_size(); //ÎÄ¼ş´óĞ¡
+	int filelen = entry.file_size(); //æ–‡ä»¶å¤§å°
 	total_size += filelen;
 	struct FileHead descriptor{
 		filename,
@@ -264,21 +219,18 @@ int _Server::sendFile(std::filesystem::directory_entry entry) {
 	fileDescriptor.set_desPort(clientPort);
 	fileDescriptor.set_len(sizeof(struct FileHead));
 	fileDescriptor.set_ACK();
-	fileDescriptor.set_FDS(); //FileDescriptor,±íÊ¾ÕâÊÇÒ»ÌõÃèÊöĞÔÏûÏ¢
+	fileDescriptor.set_FDS(); //FileDescriptor,è¡¨ç¤ºè¿™æ˜¯ä¸€æ¡æè¿°æ€§æ¶ˆæ¯
 	fileDescriptor.set_seq(NowSeq);
 	fileDescriptor.set_ack(NowAck);
 	fileDescriptor.set_data((char*)&descriptor);
 	fileDescriptor.set_check(&sendHead);
-	printf("send head\n");
-	GetSystemTime(&sysTime);
-	Server_log << "[Log] Send file head" << "  "<<sysTime.wHour+8<<":"<<sysTime.wMinute<<":"<<sysTime.wSecond<<":"<<sysTime.wMilliseconds<<std::endl;
-	sendMsg(fileDescriptor);
+	sendMsg(fileDescriptor);  //é¦–å…ˆå‘é€æ–‡ä»¶çš„æè¿°ä¿¡æ¯ï¼ˆåç§°ï¼Œå¤§å°ï¼‰
 
 	std::string path = currentPath + filename;
 
 	std::ifstream input(path, std::ios::binary);
 
-	int segments = ceil((float)filelen / MSS);  //·ÖÎª¶à¸ö½Ú·¢ËÍ
+	int segments = ceil((float)filelen / MSS);  //åˆ†ä¸ºå¤šä¸ªèŠ‚å‘é€
 
 	for (int i = 0; i < segments; i++) {
 		char buffer[MSS];
@@ -313,7 +265,7 @@ int _Server::cnt_dic() {
 	wave.set_desPort(clientPort);
 	wave.set_len(0);
 	wave.set_seq(NowSeq);
-	wave.set_FIN();  //ÉèÖÃFinÎ»
+	wave.set_FIN();  //è®¾ç½®Finä½
 	wave.set_check(&sendHead);
 
 	sendMsg(wave);
